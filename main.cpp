@@ -14,7 +14,8 @@ SDL_Surface* gScreenSurface = NULL;
 SDL_Surface* gImage = NULL;
 SDL_Surface* gCurrentSurface = NULL;
 
-SDL_Rect gSpriteClips[ 4 ];
+const int WALKING_ANIMATION_FRAMES = 4;
+SDL_Rect gSpriteClips[ WALKING_ANIMATION_FRAMES ];
 LTexture gSpriteSheetTexture;
 
 
@@ -31,12 +32,12 @@ bool init(){
             success = false;
         } else{
 			//Create renderer for window
-			gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED );
-			if( gRenderer == NULL )
-			{
-				printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
-				success = false;
-			}
+			gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
+            if( gRenderer == NULL )
+            {
+                printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
+                success = false;
+            }
 			else
 			{
 				//Initialize renderer color
@@ -166,6 +167,7 @@ int main( int argc, char* args[] ){
         }else{
             SDL_Event e;
             bool quit = false;
+            int frame = 0;
             while( quit == false ){
                 while( SDL_PollEvent( &e ) ){
                     if( e.type == SDL_QUIT ){
@@ -178,20 +180,21 @@ int main( int argc, char* args[] ){
 				SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 				SDL_RenderClear( gRenderer );
 
-				//Render top left sprite
-				gSpriteSheetTexture.render( 0, 0, &gSpriteClips[ 0 ] );
-
-				//Render top right sprite
-				gSpriteSheetTexture.render( SCREEN_WIDTH - gSpriteClips[ 1 ].w, 0, &gSpriteClips[ 1 ] );
-
-				//Render bottom left sprite
-				gSpriteSheetTexture.render( 0, SCREEN_HEIGHT - gSpriteClips[ 2 ].h, &gSpriteClips[ 2 ] );
-
-				//Render bottom right sprite
-				gSpriteSheetTexture.render( SCREEN_WIDTH - gSpriteClips[ 3 ].w, SCREEN_HEIGHT - gSpriteClips[ 3 ].h, &gSpriteClips[ 3 ] );
+				//Render current frame
+				SDL_Rect* currentClip = &gSpriteClips[ frame / 4 ];
+				gSpriteSheetTexture.render( ( SCREEN_WIDTH - currentClip->w ) / 2, ( SCREEN_HEIGHT - currentClip->h ) / 2, currentClip );
 
 				//Update screen
 				SDL_RenderPresent( gRenderer );
+
+				//Go to next frame
+				++frame;
+
+				//Cycle animation
+				if( frame / 4 >= WALKING_ANIMATION_FRAMES )
+				{
+					frame = 0;
+				}
             }
         }
     }
