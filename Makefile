@@ -1,5 +1,5 @@
 main: clean debug
-	g++ main.cpp -w -lSDL2 -lSDL2_image -o SGRUN
+	g++ main.cpp -w -lSDL2 -lSDL2_image -o SGDODGE
 
 clean:
 	rm -f main

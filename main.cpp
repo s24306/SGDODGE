@@ -26,7 +26,7 @@ bool init(){
         printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
         success = false;
     } else {
-        gWindow = SDL_CreateWindow("SGRUN", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+        gWindow = SDL_CreateWindow("SGDODGE", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
         if(gWindow == NULL){
             printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
             success = false;
@@ -165,6 +165,8 @@ int main( int argc, char* args[] ){
         if( !loadMedia() ){
             printf( "Failed to load media!\n" );
         }else{
+			gSpriteSheetTexture.x = SCREEN_WIDTH/ 2;
+			gSpriteSheetTexture.y = SCREEN_HEIGHT / 2;
             SDL_Event e;
             bool quit = false;
             int frame = 0;
@@ -173,31 +175,33 @@ int main( int argc, char* args[] ){
                 while( SDL_PollEvent( &e ) ){
                     if( e.type == SDL_QUIT ){
                         quit = true;
-                    } else if ( e.type == SDL_KEYDOWN ){
-                                switch( e.key.keysym.sym )
-                                {
-                                    case SDLK_RIGHT:
-                                    flipType = SDL_FLIP_HORIZONTAL;
-                                    break;
-
-                                    case SDLK_LEFT:
-                                    flipType = SDL_FLIP_NONE;
-                                    break;
-
-                                    case SDLK_UP:
-                                    flipType = SDL_FLIP_VERTICAL;
-                                    break;
-                                }
-
-                    }
+                    } else if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
+						bool isKeyDown = (e.type == SDL_KEYDOWN);
+						switch (e.key.keysym.sym) {
+							case SDLK_UP:
+								gSpriteSheetTexture.y = isKeyDown ? gSpriteSheetTexture.y - 5 : 0;
+								break;
+							case SDLK_DOWN:
+								gSpriteSheetTexture.y = isKeyDown ? gSpriteSheetTexture.y + 5 : 0;
+								break;
+							case SDLK_LEFT:
+								gSpriteSheetTexture.x = isKeyDown ? gSpriteSheetTexture.x - 5 : 0;
+								flipType = SDL_FLIP_NONE;
+								break;
+							case SDLK_RIGHT:
+								gSpriteSheetTexture.x = isKeyDown ? gSpriteSheetTexture.x + 5 : 0;
+								flipType = SDL_FLIP_HORIZONTAL;
+								break;
+						}
                 }
+				}
                 //Clear screen
 				SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 				SDL_RenderClear( gRenderer );
 
 				//Render current frame
 				SDL_Rect* currentClip = &gSpriteClips[ frame / 4 ];
-				gSpriteSheetTexture.render( ( SCREEN_WIDTH - currentClip->w ) / 2, ( SCREEN_HEIGHT - currentClip->h ) / 2, currentClip, NULL, NULL, flipType );
+				gSpriteSheetTexture.render( gSpriteSheetTexture.x, gSpriteSheetTexture.y, currentClip, NULL, NULL, flipType );
 
 				//Update screen
 				SDL_RenderPresent( gRenderer );
